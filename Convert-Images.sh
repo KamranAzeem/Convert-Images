@@ -90,7 +90,12 @@ echo ""
 # Sometimes you need to use field number 8, and sometimes 9, depending on the underlying OS version / environment.
 # To make sure that you don't have to fix your script on different systems, you need to make sure the time format of ls is always the same. The solution is to use ls -l --time-style="long-iso" .
 
-BRANDLIST=$(ls -l  --time-style=long-iso ${IMAGESOURCEDIRECTORY} | grep ^d | cut -d " " -f8)
+BRANDLIST=$(ls -l --time-style=long-iso ${IMAGESOURCEDIRECTORY} | grep ^d | cut -d " " -f8)
+
+if [ -z ${BRANDLIST} ] ; then 
+  echo "There are no images of any brands in the image source directory ${IMAGESOURCEDIRECTORY}. Nothing to do. Stopping."
+  echo ""
+fi
 
 for BRAND in ${BRANDLIST}; do
 
@@ -127,8 +132,21 @@ for BRAND in ${BRANDLIST}; do
     convert ${VERBOSE} -resize ${SIZEMEDIUM}x ${IMAGESOURCEDIRECTORY}/${BRAND}/${IMAGE} ${TARGETDIRECTORY}/Medium/${BRAND}/PIC/${IMAGE}
     convert ${VERBOSE} -resize ${SIZESMALL}x  ${IMAGESOURCEDIRECTORY}/${BRAND}/${IMAGE} ${TARGETDIRECTORY}/Small/${BRAND}/PIC/${IMAGE}
   done
+
+  # Time to move the processed image's source to a safe location. This way cron will not waste time re-processing it again and again.
+  # Also instead of deleting, moving to a different location is better. We don't have to re-upload through FTP in case of problem.
+
+  echo ""
+  echo "Brand images processed. Moving brand-id ${BRAND} to Post-process location: ${POSTPROCESSDIRECTORY}"
+  mv ${IMAGESOURCEDIRECTORY}/${BRAND}  ${POSTPROCESSDIRECTORY}/
+  echo ""
+  echo "==================================================================================================="
+
 done
 
 chown ${FTPUSERNAME}:${FTPGROUPNAME} ${TARGETDIRECTORY} -R
+
+
+
 
 ####### - END - Program Logic
