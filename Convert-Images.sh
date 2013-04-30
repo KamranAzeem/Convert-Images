@@ -87,11 +87,12 @@ echo ""
 
 # List of Directories:
 # ls -l  --time-style=long-iso /tmp/UploadedImages/  | grep ^d | cut -d " " -f8
+# Sometimes you need to use field number 8, and sometimes 9, depending on the underlying OS version / environment.
+# To make sure that you don't have to fix your script on different systems, you need to make sure the time format of ls is always the same. The solution is to use ls -l --time-style="long-iso" .
+
 BRANDLIST=$(ls -l  --time-style=long-iso ${IMAGESOURCEDIRECTORY} | grep ^d | cut -d " " -f8)
 
 for BRAND in ${BRANDLIST}; do
- 
-
 
   if [ ! -d ${TARGETDIRECTORY}/Big/${BRAND}/ ] || [ ! -d ${TARGETDIRECTORY}/Medium/${BRAND}/ ] || [ ! -d ${TARGETDIRECTORY}/Small/${BRAND}/ ] || [ ! -d ${TARGETDIRECTORY}/Zoom/${BRAND}/ ] ; then
     echo "The brand-id directory ${BRAND} does not exist inside ${TARGETDIRECTORY}/{Big,Medium,Small,Zoom}"
@@ -105,11 +106,15 @@ for BRAND in ${BRANDLIST}; do
 
 
   # First rename the image files in the source directory by converting its name from uppercase to lowercase.
-  for FILE in ${IMAGESOURCEDIRECTORY}/${BRAND}/* ;
+  for FILE in $(/bin/find ${IMAGESOURCEDIRECTORY}/${BRAND}/ -maxdepth 1 -type f -printf '%P\n') ; do
+  ## cd ${IMAGESOURCEDIRECTORY}/${BRAND}/
+  ## for FILE in * ; do
     LOWERCASENAME="$( echo ${FILE} | tr '[:upper:]' '[:lower:]' )" 
-    do mv ${IMAGESOURCEDIRECTORY}/${BRAND}/"${FILE}" ${IMAGESOURCEDIRECTORY}/${BRAND}/"${LOWERCASENAME}"
+    echo "Renaming file ${FILE} to ${LOWERCASENAME}"
+    echo "mv ${IMAGESOURCEDIRECTORY}/${BRAND}/${FILE} ${IMAGESOURCEDIRECTORY}/${BRAND}/${LOWERCASENAME} "
+    mv ${IMAGESOURCEDIRECTORY}/${BRAND}/"${FILE}" ${IMAGESOURCEDIRECTORY}/${BRAND}/"${LOWERCASENAME}"
   done
-
+  ## cd -
 
   # Generate list of files for processing in this directory
   LISTOFIMAGES=$(ls ${IMAGESOURCEDIRECTORY}/${BRAND}/)
