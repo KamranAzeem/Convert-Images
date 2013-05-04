@@ -89,8 +89,10 @@ echo ""
 # ls -l  --time-style=long-iso /tmp/UploadedImages/  | grep ^d | cut -d " " -f8
 # Sometimes you need to use field number 8, and sometimes 9, depending on the underlying OS version / environment.
 # To make sure that you don't have to fix your script on different systems, you need to make sure the time format of ls is always the same. The solution is to use ls -l --time-style="long-iso" .
+# Cut is pathetic. Results are not always the same. Better use awk
 
-BRANDLIST=$(ls -l --time-style=long-iso ${IMAGESOURCEDIRECTORY} | grep ^d | cut -d " " -f8)
+## BRANDLIST=$(ls -l --time-style=long-iso ${IMAGESOURCEDIRECTORY} | grep ^d | cut -d " " -f8)
+BRANDLIST=$(ls -l --time-style=long-iso ${IMAGESOURCEDIRECTORY} | grep ^d | awk '{print $8}')
 
 if [ -z ${BRANDLIST} ] ; then 
   echo "There are no images of any brands in the image source directory ${IMAGESOURCEDIRECTORY}. Nothing to do. Stopping."
